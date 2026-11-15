@@ -14,6 +14,7 @@ CONF_PREZZO = "prezzo_kwh"
 CONF_QUOTA = "quota_fissa_anno"
 
 CONF_PUN_ENTITA = "pun_entita"
+CONF_PUN_BOLLETTA = "pun_bolletta"
 CONF_PUN_F1 = "pun_f1"
 CONF_PUN_F2 = "pun_f2"
 CONF_PUN_F3 = "pun_f3"

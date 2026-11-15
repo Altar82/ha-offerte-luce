@@ -26,6 +26,7 @@ from .const import (
     CONF_ORE,
     CONF_POTENZA,
     CONF_PREZZO,
+    CONF_PUN_BOLLETTA,
     CONF_PUN_ENTITA,
     CONF_PUN_F1,
     CONF_PUN_F2,
@@ -103,9 +104,28 @@ def _schema_attuale(d: dict[str, Any]) -> vol.Schema:
             ),
             vol.Optional(CONF_PREZZO, description={"suggested_value": d.get(CONF_PREZZO)}): _num(0, 2, "any", "€/kWh"),
             vol.Optional(CONF_QUOTA, description={"suggested_value": d.get(CONF_QUOTA)}): _num(0, 2000, "any", "€/anno"),
+            vol.Optional(CONF_PUN_BOLLETTA, description={"suggested_value": _pun_unico(d)}): _num(0, 1000, "any", "€/kWh"),
             vol.Optional(CONF_CODICE, description={"suggested_value": d.get(CONF_CODICE)}): sel.TextSelector(),
         }
     )
+
+
+def _pun_unico(d: dict[str, Any]) -> float | None:
+    """Il PUN già impostato, se è uguale per tutte le fasce."""
+    valori = {d.get(CONF_PUN_F1), d.get(CONF_PUN_F2), d.get(CONF_PUN_F3)}
+    return valori.pop() if len(valori) == 1 else None
+
+
+def applica_pun(d: dict[str, Any]) -> dict[str, Any]:
+    """Il PUN letto in bolletta diventa il PUN previsto per tutte le fasce (accetta anche €/MWh)."""
+    d = dict(d)
+    v = d.pop(CONF_PUN_BOLLETTA, None)
+    if v:
+        v = float(v)
+        if v > 1.5:
+            v /= 1000
+        d[CONF_PUN_F1] = d[CONF_PUN_F2] = d[CONF_PUN_F3] = round(v, 5)
+    return d
 
 
 def _schema_opzioni(d: dict[str, Any]) -> vol.Schema:
@@ -171,7 +191,7 @@ class OfferteLuceConfigFlow(ConfigFlow, domain=DOMAIN):
             errori = _errori_attuale(user_input)
             if not errori:
                 self._dati.pop(CONF_PREZZO, None)
-                self._dati.update(user_input)
+                self._dati.update(applica_pun(user_input))
                 return self.async_create_entry(title="Offerte Luce", data=self._dati)
         return self.async_show_form(
             step_id="attuale", data_schema=_schema_attuale(user_input or self._dati), errors=errori
@@ -216,7 +236,7 @@ class OfferteLuceOptionsFlow(OptionsFlow):
         if user_input is not None:
             errori = _errori_attuale(user_input)
             if not errori:
-                return await self._salva(user_input, (CONF_PREZZO, CONF_QUOTA, CONF_CODICE))
+                return await self._salva(applica_pun(user_input), (CONF_PREZZO, CONF_QUOTA, CONF_CODICE))
         return self.async_show_form(
             step_id="attuale", data_schema=_schema_attuale(user_input or self._attuali), errors=errori
         )

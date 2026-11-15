@@ -26,12 +26,14 @@
           "offerta_attuale": "Che offerta hai adesso?",
           "prezzo_kwh": "Prezzo energia (o spread se variabile)",
           "quota_fissa_anno": "Quota fissa di commercializzazione",
-          "codice_offerta": "Codice offerta (dal Portale Offerte)"
+          "codice_offerta": "Codice offerta (dal Portale Offerte)",
+          "pun_bolletta": "PUN (dalla bolletta o da un sito)"
         },
         "data_description": {
           "prezzo_kwh": "Solo la voce 'materia energia' della bolletta, IVA esclusa. Per le offerte variabili indica lo spread che si somma al PUN.",
           "quota_fissa_anno": "In €/anno, IVA esclusa (se in bolletta è al mese, moltiplica per 12).",
-          "codice_offerta": "Il codice di 32 caratteri dell'offerta sottoscritta, se lo conosci."
+          "codice_offerta": "Il codice di 32 caratteri dell'offerta sottoscritta, se lo conosci.",
+          "pun_bolletta": "Con un'offerta variabile lo trovi in bolletta tra i dettagli della materia energia; con un'offerta fissa di solito non c'è: prendilo dal sito del GME o da un comparatore. In €/kWh (va bene anche in €/MWh). Serve a stimare tutte le offerte variabili; per un valore diverso per fascia o un sensore usa 'PUN, sconti e avvisi'."
         }
       }
     },
@@ -76,12 +78,14 @@
           "offerta_attuale": "Che offerta hai adesso?",
           "prezzo_kwh": "Prezzo energia (o spread se variabile)",
           "quota_fissa_anno": "Quota fissa di commercializzazione",
-          "codice_offerta": "Codice offerta (dal Portale Offerte)"
+          "codice_offerta": "Codice offerta (dal Portale Offerte)",
+          "pun_bolletta": "PUN (dalla bolletta o da un sito)"
         },
         "data_description": {
           "prezzo_kwh": "Solo la voce 'materia energia' della bolletta, IVA esclusa. Per le offerte variabili indica lo spread che si somma al PUN.",
           "quota_fissa_anno": "In €/anno, IVA esclusa (se in bolletta è al mese, moltiplica per 12).",
-          "codice_offerta": "Il codice di 32 caratteri dell'offerta sottoscritta, se lo conosci."
+          "codice_offerta": "Il codice di 32 caratteri dell'offerta sottoscritta, se lo conosci.",
+          "pun_bolletta": "Con un'offerta variabile lo trovi in bolletta tra i dettagli della materia energia; con un'offerta fissa di solito non c'è: prendilo dal sito del GME o da un comparatore. In €/kWh (va bene anche in €/MWh). Serve a stimare tutte le offerte variabili; per un valore diverso per fascia o un sensore usa 'PUN, sconti e avvisi'."
         }
       },
       "calcolo": {
