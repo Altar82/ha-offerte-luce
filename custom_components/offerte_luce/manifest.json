@@ -1,0 +1,20 @@
+{
+  "domain": "offerte_luce",
+  "name": "Offerte Luce",
+  "after_dependencies": [
+    "energy"
+  ],
+  "codeowners": [
+    "@Altar82"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "recorder"
+  ],
+  "documentation": "https://github.com/Altar82/ha-offerte-luce",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/Altar82/ha-offerte-luce/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}

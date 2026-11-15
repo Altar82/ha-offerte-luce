@@ -1,0 +1,158 @@
+{
+  "title": "Offerte Luce",
+  "config": {
+    "step": {
+      "user": {
+        "title": "La tua fornitura",
+        "description": "Confronta le offerte luce del Portale Offerte ARERA con i tuoi consumi reali.",
+        "data": {
+          "statistica_energia": "Sensore energia prelevata dalla rete",
+          "tipo_cliente": "Tipo di fornitura",
+          "potenza_kw": "Potenza impegnata",
+          "regione": "Regione",
+          "comune_istat": "Codice ISTAT del comune (facoltativo)"
+        },
+        "data_description": {
+          "statistica_energia": "Il sensore in kWh usato nella dashboard Energia: dalle sue statistiche orarie dell'ultimo anno si ricavano i consumi in F1, F2 e F3.",
+          "potenza_kw": "Si trova in bolletta (di solito 3 kW).",
+          "regione": "Alcune offerte sono riservate a certe zone.",
+          "comune_istat": "6 cifre, serve solo per le offerte limitate a province o comuni (es. 058091 per Roma)."
+        }
+      },
+      "attuale": {
+        "title": "La tua offerta attuale",
+        "description": "Serve per calcolare quanto risparmieresti. Trovi i valori nella sezione 'spesa per la materia energia' della bolletta.",
+        "data": {
+          "offerta_attuale": "Che offerta hai adesso?",
+          "prezzo_kwh": "Prezzo energia (o spread se variabile)",
+          "quota_fissa_anno": "Quota fissa di commercializzazione",
+          "codice_offerta": "Codice offerta (dal Portale Offerte)"
+        },
+        "data_description": {
+          "prezzo_kwh": "Solo la voce 'materia energia' della bolletta, IVA esclusa. Per le offerte variabili indica lo spread che si somma al PUN.",
+          "quota_fissa_anno": "In €/anno, IVA esclusa (se in bolletta è al mese, moltiplica per 12).",
+          "codice_offerta": "Il codice di 32 caratteri dell'offerta sottoscritta, se lo conosci."
+        }
+      }
+    },
+    "error": {
+      "prezzo_mancante": "Indica il prezzo dell'energia",
+      "codice_mancante": "Indica il codice offerta",
+      "comune_non_valido": "Il codice ISTAT è di 6 cifre"
+    },
+    "abort": {
+      "already_configured": "Questo sensore è già configurato"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Offerte Luce",
+        "menu_options": {
+          "fornitura": "Fornitura",
+          "attuale": "Offerta attuale",
+          "calcolo": "PUN, sconti e avvisi"
+        }
+      },
+      "fornitura": {
+        "title": "Fornitura",
+        "data": {
+          "statistica_energia": "Sensore energia prelevata dalla rete",
+          "tipo_cliente": "Tipo di fornitura",
+          "potenza_kw": "Potenza impegnata",
+          "regione": "Regione",
+          "comune_istat": "Codice ISTAT del comune (facoltativo)"
+        },
+        "data_description": {
+          "statistica_energia": "Il sensore in kWh usato nella dashboard Energia: dalle sue statistiche orarie dell'ultimo anno si ricavano i consumi in F1, F2 e F3.",
+          "potenza_kw": "Si trova in bolletta (di solito 3 kW).",
+          "regione": "Alcune offerte sono riservate a certe zone.",
+          "comune_istat": "6 cifre, serve solo per le offerte limitate a province o comuni (es. 058091 per Roma)."
+        }
+      },
+      "attuale": {
+        "title": "Offerta attuale",
+        "data": {
+          "offerta_attuale": "Che offerta hai adesso?",
+          "prezzo_kwh": "Prezzo energia (o spread se variabile)",
+          "quota_fissa_anno": "Quota fissa di commercializzazione",
+          "codice_offerta": "Codice offerta (dal Portale Offerte)"
+        },
+        "data_description": {
+          "prezzo_kwh": "Solo la voce 'materia energia' della bolletta, IVA esclusa. Per le offerte variabili indica lo spread che si somma al PUN.",
+          "quota_fissa_anno": "In €/anno, IVA esclusa (se in bolletta è al mese, moltiplica per 12).",
+          "codice_offerta": "Il codice di 32 caratteri dell'offerta sottoscritta, se lo conosci."
+        }
+      },
+      "calcolo": {
+        "title": "PUN, sconti e avvisi",
+        "data": {
+          "pun_entita": "Sensore PUN (facoltativo)",
+          "pun_f1": "PUN previsto F1",
+          "pun_f2": "PUN previsto F2",
+          "pun_f3": "PUN previsto F3",
+          "bolletta_online": "Accetto la bolletta online",
+          "domiciliazione": "Accetto la domiciliazione bancaria",
+          "includi_dual": "Includi le offerte solo luce+gas",
+          "soglia_risparmio": "Risparmio minimo per avvisarmi",
+          "aggiornamento_ore": "Ogni quante ore aggiornare"
+        },
+        "data_description": {
+          "pun_entita": "Un sensore con il PUN in €/kWh o €/MWh (es. dall'integrazione 'Prezzi PUN del mese'). Se impostato, sostituisce i valori qui sotto.",
+          "pun_f1": "Serve per stimare il costo delle offerte a prezzo variabile.",
+          "bolletta_online": "Se attivo, si contano gli sconti legati alla bolletta via e-mail.",
+          "domiciliazione": "Se attivo, si contano gli sconti legati all'addebito in conto."
+        }
+      }
+    },
+    "error": {
+      "prezzo_mancante": "Indica il prezzo dell'energia",
+      "codice_mancante": "Indica il codice offerta",
+      "comune_non_valido": "Il codice ISTAT è di 6 cifre"
+    }
+  },
+  "selector": {
+    "tipo_cliente": {
+      "options": {
+        "domestico_residente": "Casa di residenza",
+        "domestico_non_residente": "Casa non di residenza",
+        "altri_usi": "Altri usi (partita IVA, condominio…)"
+      }
+    },
+    "offerta_attuale": {
+      "options": {
+        "fisso": "Prezzo fisso",
+        "variabile": "Prezzo variabile (PUN + spread)",
+        "codice": "Cerca per codice offerta",
+        "nessuna": "Non lo so / non confrontare"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "migliore_offerta": {
+        "name": "Migliore offerta"
+      },
+      "costo_migliore_offerta": {
+        "name": "Costo migliore offerta"
+      },
+      "costo_offerta_attuale": {
+        "name": "Costo offerta attuale"
+      },
+      "risparmio_annuo": {
+        "name": "Risparmio annuo"
+      },
+      "consumo_annuo": {
+        "name": "Consumo annuo"
+      },
+      "offerte_confrontate": {
+        "name": "Offerte confrontate"
+      }
+    },
+    "binary_sensor": {
+      "conviene_cambiare": {
+        "name": "Conviene cambiare"
+      }
+    }
+  }
+}
