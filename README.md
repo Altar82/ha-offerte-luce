@@ -46,9 +46,15 @@ automation:
 
 ## Installazione
 
-1. Nel Marketplace (HACS) apri il menu ⋮ → **Repository personalizzati** e aggiungi `https://github.com/Altar82/ha-offerte-luce` come **Integrazione**.
-2. Installa **Offerte Luce** e riavvia Home Assistant.
+### Dal Marketplace (consigliata)
+
+1. In Home Assistant apri **Marketplace** e cerca **Offerte Luce**.
+2. Installala e riavvia Home Assistant.
 3. Vai in **Impostazioni → Dispositivi e servizi → Aggiungi integrazione** e cerca **Offerte Luce**.
+
+### Come repository personalizzato
+
+Se non la trovi nella ricerca, nel Marketplace apri il menu ⋮ → **Repository personalizzati**, aggiungi `https://github.com/Altar82/ha-offerte-luce` come **Integrazione** e poi segui i passi qui sopra.
 
 Serve un sensore di energia prelevata dalla rete (kWh, `total_increasing`) con almeno 2 settimane di statistiche. Se la dashboard Energia è configurata, viene proposto in automatico.
 
