@@ -1,5 +1,7 @@
 # Offerte Luce
 
+[![Download](https://img.shields.io/github/downloads/Altar82/ha-offerte-luce/total?label=download)](https://github.com/Altar82/ha-offerte-luce/releases) [![Installazioni attive](https://img.shields.io/badge/dynamic/json?label=installazioni%20attive&query=%24.offerte_luce.total&url=https%3A%2F%2Fanalytics.home-assistant.io%2Fcustom_integrations.json&color=41BDF5)](https://analytics.home-assistant.io/custom_integrations)
+
 Integrazione per Home Assistant che confronta **tutte le offerte luce del mercato libero** pubblicate ogni giorno sul [Portale Offerte di ARERA](https://www.ilportaleofferte.it) con **i tuoi consumi reali**, presi dalle statistiche della dashboard Energia.
 
 Ti dice qual è l'offerta più conveniente per te, quanto spenderesti in un anno e quanto risparmieresti rispetto a quella che hai adesso. Quando il risparmio supera una soglia scelta da te, può avvisarti.
