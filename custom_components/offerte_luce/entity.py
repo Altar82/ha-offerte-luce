@@ -23,7 +23,7 @@ class OfferteEntity(CoordinatorEntity[OfferteCoordinator]):
             identifiers={(DOMAIN, entry.entry_id)},
             name=entry.title,
             manufacturer="Portale Offerte ARERA",
-            model="Confronto offerte luce",
+            model="Confronto offerte gas" if coordinator.gas else "Confronto offerte luce",
             entry_type=DeviceEntryType.SERVICE,
             configuration_url="https://www.ilportaleofferte.it",
         )

@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorEntityDescription, SensorStateClass
-from homeassistant.const import EntityCategory, UnitOfEnergy
+from homeassistant.const import EntityCategory, UnitOfEnergy, UnitOfVolume
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -25,7 +25,10 @@ def _migliore_attr(r: Risultato) -> dict[str, Any]:
         {k: x[k] for k in ("nome", "venditore", "tipo", "costo_annuo", "url")} for x in r.migliori
     ]
     m["data_elenco_offerte"] = r.data_file
-    m["pun_usato"] = r.pun
+    if r.gas:
+        m["psv_usato"] = r.pun["F1"]
+    else:
+        m["pun_usato"] = r.pun
     m["note"] = r.note
     return m
 
@@ -74,12 +77,11 @@ SENSORI = (
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         suggested_display_precision=0,
         valore=lambda r: round(sum(r.kwh.values()), 1),
-        attributi=lambda r: {
-            "F1": r.kwh["F1"],
-            "F2": r.kwh["F2"],
-            "F3": r.kwh["F3"],
-            "giorni_di_dati": r.giorni_dati,
-        },
+        attributi=lambda r: (
+            {"giorni_di_dati": r.giorni_dati}
+            if r.gas
+            else {"F1": r.kwh["F1"], "F2": r.kwh["F2"], "F3": r.kwh["F3"], "giorni_di_dati": r.giorni_dati}
+        ),
     ),
     Descrizione(
         key="offerte_confrontate",
@@ -87,13 +89,27 @@ SENSORI = (
         state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
         valore=lambda r: r.confrontate,
-        attributi=lambda r: {"escluse": r.esclusi, "data_elenco_offerte": r.data_file, "pun_fonte": r.pun_fonte},
+        attributi=lambda r: {
+            "escluse": r.esclusi,
+            "data_elenco_offerte": r.data_file,
+            ("psv_fonte" if r.gas else "pun_fonte"): r.pun_fonte,
+        },
     ),
 )
 
 
+CONSUMO_GAS = {
+    "device_class": SensorDeviceClass.GAS,
+    "native_unit_of_measurement": UnitOfVolume.CUBIC_METERS,  # Smc ≈ m³
+}
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: OfferteConfigEntry, add: AddEntitiesCallback) -> None:
-    add(OfferteSensor(entry.runtime_data, d) for d in SENSORI)
+    c = entry.runtime_data
+    add(
+        OfferteSensor(c, replace(d, **CONSUMO_GAS) if c.gas and d.key == "consumo_annuo" else d)
+        for d in SENSORI
+    )
 
 
 class OfferteSensor(OfferteEntity, SensorEntity):

@@ -3,20 +3,10 @@
   "config": {
     "step": {
       "user": {
-        "title": "La tua fornitura",
-        "description": "Confronta le offerte luce del Portale Offerte ARERA con i tuoi consumi reali.",
-        "data": {
-          "statistica_energia": "Sensore energia prelevata dalla rete",
-          "tipo_cliente": "Tipo di fornitura",
-          "potenza_kw": "Potenza impegnata",
-          "regione": "Regione",
-          "comune_istat": "Codice ISTAT del comune (facoltativo)"
-        },
-        "data_description": {
-          "statistica_energia": "Il sensore in kWh usato nella dashboard Energia: dalle sue statistiche orarie dell'ultimo anno si ricavano i consumi in F1, F2 e F3.",
-          "potenza_kw": "Si trova in bolletta (di solito 3 kW).",
-          "regione": "Alcune offerte sono riservate a certe zone.",
-          "comune_istat": "6 cifre, serve solo per le offerte limitate a province o comuni (es. 058091 per Roma)."
+        "title": "Cosa vuoi confrontare?",
+        "menu_options": {
+          "luce": "Offerte luce",
+          "gas": "Offerte gas"
         }
       },
       "attuale": {
@@ -35,15 +25,69 @@
           "codice_offerta": "Il codice di 32 caratteri dell'offerta sottoscritta, se lo conosci.",
           "pun_bolletta": "Con un'offerta variabile lo trovi in bolletta tra i dettagli della materia energia; con un'offerta fissa di solito non c'è: prendilo dal sito del GME o da un comparatore. In €/kWh (va bene anche in €/MWh). Serve a stimare tutte le offerte variabili; per un valore diverso per fascia o un sensore usa 'PUN, sconti e avvisi'."
         }
+      },
+      "luce": {
+        "title": "La tua fornitura di luce",
+        "description": "Confronta le offerte luce del Portale Offerte ARERA con i tuoi consumi reali.",
+        "data": {
+          "statistica_energia": "Sensore energia prelevata dalla rete (facoltativo)",
+          "tipo_cliente": "Tipo di fornitura",
+          "potenza_kw": "Potenza impegnata",
+          "regione": "Regione",
+          "comune_istat": "Codice ISTAT del comune (facoltativo)",
+          "consumo_annuo": "Consumo annuo (facoltativo)"
+        },
+        "data_description": {
+          "statistica_energia": "Il sensore in kWh usato nella dashboard Energia: dalle sue statistiche orarie dell'ultimo anno si ricavano i consumi in F1, F2 e F3. Se non ce l'hai, indica il consumo annuo.",
+          "potenza_kw": "Si trova in bolletta (di solito 3 kW).",
+          "regione": "Alcune offerte sono riservate a certe zone.",
+          "comune_istat": "6 cifre, serve solo per le offerte limitate a province o comuni (es. 058091 per Roma).",
+          "consumo_annuo": "I kWh dell'ultimo anno che trovi in bolletta. Se c'è anche il sensore, da questo si prende solo la ripartizione F1/F2/F3."
+        }
+      },
+      "gas": {
+        "title": "La tua fornitura di gas",
+        "description": "Confronta le offerte gas del Portale Offerte ARERA con i tuoi consumi.",
+        "data": {
+          "statistica_energia": "Sensore del gas (facoltativo)",
+          "consumo_annuo": "Consumo annuo",
+          "tipo_cliente": "Tipo di fornitura",
+          "regione": "Regione",
+          "comune_istat": "Codice ISTAT del comune (facoltativo)"
+        },
+        "data_description": {
+          "statistica_energia": "Il sensore in m³ (o kWh) della dashboard Energia. Con meno di un anno di dati la stima è poco affidabile, perché il gas si consuma soprattutto d'inverno.",
+          "consumo_annuo": "Gli Smc dell'ultimo anno: in bolletta è il 'consumo annuo'. Se lo indichi, vale questo e non il sensore.",
+          "regione": "Alcune offerte sono riservate a certe zone.",
+          "comune_istat": "6 cifre, serve solo per le offerte limitate a province o comuni (es. 058091 per Roma)."
+        }
+      },
+      "attuale_gas": {
+        "title": "La tua offerta gas attuale",
+        "description": "Serve per calcolare quanto risparmieresti. Trovi i valori nella sezione 'spesa per la materia gas naturale' della bolletta.",
+        "data": {
+          "offerta_attuale": "Che offerta hai adesso?",
+          "prezzo_kwh": "Prezzo del gas (o spread se variabile)",
+          "quota_fissa_anno": "Quota fissa di commercializzazione",
+          "codice_offerta": "Codice offerta (dal Portale Offerte)",
+          "psv_bolletta": "PSV (dalla bolletta o da un sito)"
+        },
+        "data_description": {
+          "prezzo_kwh": "Solo la voce 'materia gas naturale' della bolletta, IVA esclusa, in €/Smc. Per le offerte variabili indica lo spread che si somma al PSV.",
+          "quota_fissa_anno": "In €/anno, IVA esclusa (se in bolletta è al mese, moltiplica per 12).",
+          "codice_offerta": "Il codice di 32 caratteri dell'offerta sottoscritta, se lo conosci.",
+          "psv_bolletta": "Con un'offerta variabile lo trovi in bolletta; altrimenti prendilo dal sito del GME o da un comparatore. In €/Smc (va bene anche in €/MWh). Serve a stimare tutte le offerte variabili."
+        }
       }
     },
     "error": {
       "prezzo_mancante": "Indica il prezzo dell'energia",
       "codice_mancante": "Indica il codice offerta",
-      "comune_non_valido": "Il codice ISTAT è di 6 cifre"
+      "comune_non_valido": "Il codice ISTAT è di 6 cifre",
+      "consumo_mancante": "Indica un sensore oppure il consumo annuo"
     },
     "abort": {
-      "already_configured": "Questo sensore è già configurato"
+      "already_configured": "Questa fornitura è già configurata"
     }
   },
   "options": {
@@ -59,17 +103,19 @@
       "fornitura": {
         "title": "Fornitura",
         "data": {
-          "statistica_energia": "Sensore energia prelevata dalla rete",
+          "statistica_energia": "Sensore energia prelevata dalla rete (facoltativo)",
           "tipo_cliente": "Tipo di fornitura",
           "potenza_kw": "Potenza impegnata",
           "regione": "Regione",
-          "comune_istat": "Codice ISTAT del comune (facoltativo)"
+          "comune_istat": "Codice ISTAT del comune (facoltativo)",
+          "consumo_annuo": "Consumo annuo (facoltativo)"
         },
         "data_description": {
-          "statistica_energia": "Il sensore in kWh usato nella dashboard Energia: dalle sue statistiche orarie dell'ultimo anno si ricavano i consumi in F1, F2 e F3.",
+          "statistica_energia": "Il sensore in kWh usato nella dashboard Energia: dalle sue statistiche orarie dell'ultimo anno si ricavano i consumi in F1, F2 e F3. Se non ce l'hai, indica il consumo annuo.",
           "potenza_kw": "Si trova in bolletta (di solito 3 kW).",
           "regione": "Alcune offerte sono riservate a certe zone.",
-          "comune_istat": "6 cifre, serve solo per le offerte limitate a province o comuni (es. 058091 per Roma)."
+          "comune_istat": "6 cifre, serve solo per le offerte limitate a province o comuni (es. 058091 per Roma).",
+          "consumo_annuo": "I kWh dell'ultimo anno che trovi in bolletta. Se c'è anche il sensore, da questo si prende solo la ripartizione F1/F2/F3."
         }
       },
       "attuale": {
@@ -99,20 +145,85 @@
           "domiciliazione": "Accetto la domiciliazione bancaria",
           "includi_dual": "Includi le offerte solo luce+gas",
           "soglia_risparmio": "Risparmio minimo per avvisarmi",
-          "aggiornamento_ore": "Ogni quante ore aggiornare"
+          "aggiornamento_ore": "Ogni quante ore aggiornare",
+          "notifica": "Notifica in Home Assistant quando conviene cambiare"
         },
         "data_description": {
           "pun_entita": "Un sensore con il PUN in €/kWh o €/MWh (es. dall'integrazione 'Prezzi PUN del mese'). Se impostato, sostituisce i valori qui sotto.",
           "pun_f1": "Serve per stimare il costo delle offerte a prezzo variabile.",
           "bolletta_online": "Se attivo, si contano gli sconti legati alla bolletta via e-mail.",
-          "domiciliazione": "Se attivo, si contano gli sconti legati all'addebito in conto."
+          "domiciliazione": "Se attivo, si contano gli sconti legati all'addebito in conto.",
+          "notifica": "Crea una notifica persistente quando c'è una nuova offerta che fa risparmiare almeno la soglia.",
+          "soglia_risparmio": "Sotto questa cifra (IVA esclusa) il sensore 'Conviene cambiare' resta spento."
+        }
+      },
+      "init_gas": {
+        "title": "Offerte Gas",
+        "menu_options": {
+          "fornitura_gas": "Fornitura",
+          "attuale_gas": "Offerta attuale",
+          "calcolo_gas": "PSV, sconti e avvisi"
+        }
+      },
+      "fornitura_gas": {
+        "title": "Fornitura gas",
+        "data": {
+          "statistica_energia": "Sensore del gas (facoltativo)",
+          "consumo_annuo": "Consumo annuo",
+          "tipo_cliente": "Tipo di fornitura",
+          "regione": "Regione",
+          "comune_istat": "Codice ISTAT del comune (facoltativo)"
+        },
+        "data_description": {
+          "statistica_energia": "Il sensore in m³ (o kWh) della dashboard Energia. Con meno di un anno di dati la stima è poco affidabile, perché il gas si consuma soprattutto d'inverno.",
+          "consumo_annuo": "Gli Smc dell'ultimo anno: in bolletta è il 'consumo annuo'. Se lo indichi, vale questo e non il sensore.",
+          "regione": "Alcune offerte sono riservate a certe zone.",
+          "comune_istat": "6 cifre, serve solo per le offerte limitate a province o comuni (es. 058091 per Roma)."
+        }
+      },
+      "attuale_gas": {
+        "title": "Offerta gas attuale",
+        "data": {
+          "offerta_attuale": "Che offerta hai adesso?",
+          "prezzo_kwh": "Prezzo del gas (o spread se variabile)",
+          "quota_fissa_anno": "Quota fissa di commercializzazione",
+          "codice_offerta": "Codice offerta (dal Portale Offerte)",
+          "psv_bolletta": "PSV (dalla bolletta o da un sito)"
+        },
+        "data_description": {
+          "prezzo_kwh": "Solo la voce 'materia gas naturale' della bolletta, IVA esclusa, in €/Smc. Per le offerte variabili indica lo spread che si somma al PSV.",
+          "quota_fissa_anno": "In €/anno, IVA esclusa (se in bolletta è al mese, moltiplica per 12).",
+          "codice_offerta": "Il codice di 32 caratteri dell'offerta sottoscritta, se lo conosci.",
+          "psv_bolletta": "Con un'offerta variabile lo trovi in bolletta; altrimenti prendilo dal sito del GME o da un comparatore. In €/Smc (va bene anche in €/MWh). Serve a stimare tutte le offerte variabili."
+        }
+      },
+      "calcolo_gas": {
+        "title": "PSV, sconti e avvisi",
+        "data": {
+          "psv_entita": "Sensore PSV (facoltativo)",
+          "psv": "PSV previsto",
+          "bolletta_online": "Accetto la bolletta online",
+          "domiciliazione": "Accetto la domiciliazione bancaria",
+          "includi_dual": "Includi le offerte solo luce+gas",
+          "soglia_risparmio": "Risparmio minimo per avvisarmi",
+          "aggiornamento_ore": "Ogni quante ore aggiornare",
+          "notifica": "Notifica in Home Assistant quando conviene cambiare"
+        },
+        "data_description": {
+          "psv_entita": "Un sensore con il PSV in €/Smc o €/MWh. Se impostato, sostituisce il valore qui sotto.",
+          "psv": "Serve per stimare il costo delle offerte gas a prezzo variabile.",
+          "bolletta_online": "Se attivo, si contano gli sconti legati alla bolletta via e-mail.",
+          "domiciliazione": "Se attivo, si contano gli sconti legati all'addebito in conto.",
+          "notifica": "Crea una notifica persistente quando c'è una nuova offerta che fa risparmiare almeno la soglia.",
+          "soglia_risparmio": "Sotto questa cifra (IVA esclusa) il sensore 'Conviene cambiare' resta spento."
         }
       }
     },
     "error": {
       "prezzo_mancante": "Indica il prezzo dell'energia",
       "codice_mancante": "Indica il codice offerta",
-      "comune_non_valido": "Il codice ISTAT è di 6 cifre"
+      "comune_non_valido": "Il codice ISTAT è di 6 cifre",
+      "consumo_mancante": "Indica un sensore oppure il consumo annuo"
     }
   },
   "selector": {

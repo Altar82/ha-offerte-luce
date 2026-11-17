@@ -2,7 +2,12 @@
 
 DOMAIN = "offerte_luce"
 
+CONF_FORNITURA = "tipo_fornitura"
+FORNITURA_LUCE = "luce"
+FORNITURA_GAS = "gas"
+
 CONF_STAT = "statistica_energia"
+CONF_CONSUMO_ANNUO = "consumo_annuo"
 CONF_TIPO_CLIENTE = "tipo_cliente"
 CONF_POTENZA = "potenza_kw"
 CONF_REGIONE = "regione"
@@ -18,6 +23,10 @@ CONF_PUN_BOLLETTA = "pun_bolletta"
 CONF_PUN_F1 = "pun_f1"
 CONF_PUN_F2 = "pun_f2"
 CONF_PUN_F3 = "pun_f3"
+CONF_PSV_ENTITA = "psv_entita"
+CONF_PSV = "psv"
+CONF_PSV_BOLLETTA = "psv_bolletta"
+CONF_NOTIFICA = "notifica"
 CONF_ONLINE = "bolletta_online"
 CONF_SDD = "domiciliazione"
 CONF_DUAL = "includi_dual"
@@ -34,6 +43,11 @@ ATTUALE_VARIABILE = "variabile"
 ATTUALE_NESSUNA = "nessuna"
 
 DEFAULT_PUN = 0.22  # €/kWh, autunno 2026: va aggiornato o collegato a un sensore
+DEFAULT_PSV = 0.85  # €/Smc, media di ottobre 2026
+KWH_PER_SMC = 10.7  # potere calorifico convenzionale (0,0107 MWh/Smc)
+SOGLIA_IVA_GAS = 480  # Smc/anno con IVA al 10% per gli usi domestici
+# ripartizione tipica dei consumi domestici quando si conosce solo il totale annuo
+QUOTE_FASCE = {"F1": 0.33, "F2": 0.31, "F3": 0.36}
 DEFAULT_SOGLIA = 50.0
 DEFAULT_ORE = 12
 IVA_DOMESTICO = 0.10

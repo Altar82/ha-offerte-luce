@@ -147,3 +147,54 @@ def test_per_fascia_annualizza():
     assert round(kwh["F2"], 3) == round(41 * 4 * k, 3)
     assert round(kwh["F3"], 3) == round(72 * 4 * k, 3)
     assert consumi.per_fascia(righe[:24])[1] < consumi.GIORNI_MINIMI
+
+
+def offerta_gas(codice, *, tipo="01", prezzo="0.95", quota="96", indice="14", scaglioni=None):
+    if scaglioni:
+        ivs = "".join(
+            f"<IntervalloPrezzi><PREZZO>{p}</PREZZO><UNITA_MISURA>04</UNITA_MISURA>"
+            f"<CONSUMO_DA>{da}</CONSUMO_DA><CONSUMO_A>{a}</CONSUMO_A></IntervalloPrezzi>"
+            for da, a, p in scaglioni
+        )
+    else:
+        ivs = f"<IntervalloPrezzi><FASCIA_COMPONENTE>01</FASCIA_COMPONENTE><PREZZO>{prezzo}</PREZZO><UNITA_MISURA>04</UNITA_MISURA></IntervalloPrezzi>"
+    idx = f"<RiferimentiPrezzoEnergia><IDX_PREZZO_ENERGIA>{indice}</IDX_PREZZO_ENERGIA></RiferimentiPrezzoEnergia>" if tipo == "02" else ""
+    return f"""<offerta>
+<IdentificativiOfferta><PIVA_UTENTE>1</PIVA_UTENTE><COD_OFFERTA>{codice}</COD_OFFERTA></IdentificativiOfferta>
+<DettaglioOfferta><OFFERTA_SINGOLA>SI</OFFERTA_SINGOLA><TIPO_CLIENTE>01</TIPO_CLIENTE>
+<TIPO_OFFERTA>{tipo}</TIPO_OFFERTA><NOME_OFFERTA>Gas {codice}</NOME_OFFERTA><DURATA>-1</DURATA>
+<Contatti><URL_SITO_VENDITORE>www.{codice.lower()}.it</URL_SITO_VENDITORE></Contatti></DettaglioOfferta>{idx}
+<ValiditaOfferta><DATA_INIZIO>01/01/2026_00:00:00</DATA_INIZIO><DATA_FINE>31/12/2026_23:59:59</DATA_FINE></ValiditaOfferta>
+<ComponenteImpresa><NOME>Gas</NOME><MACROAREA>04</MACROAREA>{ivs}</ComponenteImpresa>
+<ComponenteImpresa><NOME>Quota</NOME><MACROAREA>01</MACROAREA><IntervalloPrezzi><PREZZO>{quota}</PREZZO>
+<UNITA_MISURA>01</UNITA_MISURA></IntervalloPrezzi></ComponenteImpresa>
+</offerta>"""
+
+
+def test_gas_fisso_variabile_e_scaglioni(tmp_path):
+    path = scrivi(
+        tmp_path,
+        offerta_gas("FISSA", prezzo="0.95"),
+        offerta_gas("PSV", tipo="02", prezzo="0.10", quota="60"),
+        offerta_gas("TTF", tipo="02", prezzo="0.05", indice="13"),
+        offerta_gas("SCAGL", scaglioni=[(0, 500, "1.20"), (501, 0, "0.80")]),
+        offerta("LUCE"),  # componenti in €/kWh: per il gas non è interpretabile
+    )
+    p = arera.Profilo(kwh={"F1": 1000.0, "F2": 0.0, "F3": 0.0}, gas=True, psv=0.85)
+    c = arera.confronta(path, p, OGGI)
+    costi = {s.offerta.codice: round(s.totale, 2) for s in c.stime}
+    assert costi["FISSA"] == 96 + 950
+    assert costi["PSV"] == 60 + 1000 * (0.10 + 0.85)
+    assert costi["SCAGL"] == 96 + 800  # scaglione oltre 500 Smc
+    assert "TTF" not in costi and c.esclusi.get("indice non stimabile") == 2  # TTF e la luce indicizzata al PUN
+    assert "LUCE" not in costi
+    d = c.stime[0].as_dict()
+    assert "prezzo_medio_smc" in d and d["tipo"] == "prezzo fisso"
+    assert next(s for s in c.stime if s.offerta.codice == "PSV").as_dict()["tipo"] == "variabile (PSV + spread)"
+
+
+def test_url_gas():
+    from datetime import date
+
+    assert arera.url_for(date(2026, 11, 16), gas=True).endswith("2026_11/PO_Offerte_G_MLIBERO_20261116.xml")
+    assert "PO_Offerte_E_MLIBERO" in arera.url_for(date(2026, 11, 16))

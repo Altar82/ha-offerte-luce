@@ -1,4 +1,4 @@
-"""Lettura degli Open Data del Portale Offerte ARERA (luce, mercato libero) e calcolo della spesa.
+"""Lettura degli Open Data del Portale Offerte ARERA (luce e gas, mercato libero) e calcolo della spesa.
 
 Modulo puro (solo libreria standard): niente Home Assistant, testabile da riga di comando.
 
@@ -17,7 +17,7 @@ from typing import Any, Iterable
 NS = "{http://www.acquirenteunico.it/schemas/SII_AU/OffertaRetail/01}"
 URL_TEMPLATE = (
     "https://www.ilportaleofferte.it/portaleOfferte/resources/opendata/csv/offerteML/"
-    "{y:04d}_{m:02d}/PO_Offerte_E_MLIBERO_{y:04d}{m:02d}{d:02d}.xml"
+    "{y:04d}_{m:02d}/PO_Offerte_{c}_MLIBERO_{y:04d}{m:02d}{d:02d}.xml"
 )
 FONTE = "Portale Offerte ARERA / Acquirente Unico - Open Data CC-BY 4.0"
 
@@ -33,10 +33,13 @@ FASCE_PERSONALIZZATE = "91"
 UNITA_EURO_ANNO = "01"
 UNITA_EURO_KW = "02"
 UNITA_EURO_KWH = "03"
+UNITA_EURO_SMC = "04"
 UNITA_EURO_UNA_TANTUM = "05"
 UNITA_PERCENTUALE = "06"
 # indici di prezzo trattati come PUN (gli altri non sono stimabili)
 IDX_PUN = {"01", "08", "12"}
+# indici trattati come PSV per il gas (trimestrale, bimestrale, mensile)
+IDX_PSV = {"03", "10", "14"}
 # condizioni di applicazione degli sconti
 SCONTO_SEMPRE = "00"
 SCONTO_BOLLETTA_ONLINE = "01"
@@ -44,10 +47,11 @@ SCONTO_DOMICILIAZIONE = "03"
 
 FASCE = ("F1", "F2", "F3")
 MAX_EURO_KWH = 1.5  # oltre si assume un errore di unità (€/MWh)
+MAX_EURO_SMC = 5.0  # gas: oltre il prezzo non è credibile
 
 
-def url_for(day: date) -> str:
-    return URL_TEMPLATE.format(y=day.year, m=day.month, d=day.day)
+def url_for(day: date, gas: bool = False) -> str:
+    return URL_TEMPLATE.format(c="G" if gas else "E", y=day.year, m=day.month, d=day.day)
 
 
 def _t(el: ET.Element, path: str) -> str | None:
@@ -289,10 +293,16 @@ class Profilo:
     bolletta_online: bool = True
     domiciliazione: bool = True
     includi_dual: bool = False
+    gas: bool = False  # per il gas kwh contiene gli Smc annui in "F1" (nessuna fascia)
+    psv: float = 0.9  # €/Smc
 
     @property
     def totale(self) -> float:
         return sum(self.kwh.values())
+
+    @property
+    def bande(self) -> tuple[str, ...]:
+        return ("F1",) if self.gas else FASCE
 
 
 def compatibile(o: Offerta, p: Profilo, oggi: datetime) -> str | None:
@@ -310,14 +320,16 @@ def compatibile(o: Offerta, p: Profilo, oggi: datetime) -> str | None:
         return "fuori validità"
     if o.tipo_offerta not in (OFFERTA_FISSA, OFFERTA_VARIABILE):
         return "tipo prezzo non stimabile"
-    if o.variabile and o.indice not in IDX_PUN:
+    if o.variabile and o.indice not in (IDX_PSV if p.gas else IDX_PUN):
         return "indice non stimabile"
-    if o.fasce not in (FASCE_MONO, FASCE_F123, FASCE_BIORARIA, FASCE_PERSONALIZZATE):
+    if not p.gas and o.fasce not in (FASCE_MONO, FASCE_F123, FASCE_BIORARIA, FASCE_PERSONALIZZATE):
         return "fasce non gestite"
     c = p.totale
     if o.consumo_min and c < o.consumo_min or o.consumo_max and c > o.consumo_max:
         return "consumo fuori limiti"
-    if o.potenza_min and p.potenza_kw < o.potenza_min or o.potenza_max and p.potenza_kw > o.potenza_max:
+    if not p.gas and (
+        o.potenza_min and p.potenza_kw < o.potenza_min or o.potenza_max and p.potenza_kw > o.potenza_max
+    ):
         return "potenza fuori limiti"
     if o.regioni or o.province or o.comuni:
         provincia = p.comune[:3] if p.comune else None
@@ -335,11 +347,17 @@ def _kwh_price(v: float) -> float:
     return v / 1000 if v > MAX_EURO_KWH else v
 
 
-def _prezzo_fascia(ivs: list[Intervallo], fasce: str | None, banda: str, consumo: float) -> float | None:
-    """Prezzo €/kWh di una componente per la banda F1/F2/F3."""
-    ivs = [i for i in ivs if i.unita == UNITA_EURO_KWH]
+def _prezzo_fascia(
+    ivs: list[Intervallo], fasce: str | None, banda: str, consumo: float, gas: bool = False
+) -> float | None:
+    """Prezzo €/kWh (o €/Smc per il gas) di una componente per la banda F1/F2/F3."""
+    ivs = [i for i in ivs if i.unita == (UNITA_EURO_SMC if gas else UNITA_EURO_KWH)]
     if not ivs:
         return None
+    if gas:
+        conv = lambda v: v  # noqa: E731 - nessuna conversione di unità per il gas
+    else:
+        conv = _kwh_price
     # scaglioni di consumo annuo
     scaglione = [i for i in ivs if i.consumo_da is not None or i.consumo_a is not None]
     if scaglione:
@@ -349,20 +367,22 @@ def _prezzo_fascia(ivs: list[Intervallo], fasce: str | None, banda: str, consumo
         ]
         ivs = ok or ivs
     by = {i.fascia: i.prezzo for i in ivs}
-    if fasce == FASCE_F123:
+    if gas:
+        pass  # il gas non ha fasce orarie
+    elif fasce == FASCE_F123:
         key = {"F1": "01", "F2": "02", "F3": "03"}[banda]
         if key in by:
-            return _kwh_price(by[key])
+            return conv(by[key])
     elif fasce == FASCE_BIORARIA:
         key = "07" if banda == "F1" else "08"
         if key in by:
-            return _kwh_price(by[key])
+            return conv(by[key])
     # monoraria, fasce personalizzate o prezzo unico: un solo valore per tutte le ore
-    if len(set(by.values())) == 1 or fasce in (FASCE_MONO, FASCE_PERSONALIZZATE):
+    if gas or len(set(by.values())) == 1 or fasce in (FASCE_MONO, FASCE_PERSONALIZZATE):
         for k in ("01", "91", None):
             if k in by:
-                return _kwh_price(by[k])
-        return _kwh_price(next(iter(by.values())))
+                return conv(by[k])
+        return conv(next(iter(by.values())))
     return None
 
 
@@ -384,15 +404,16 @@ class Stima:
 
     def as_dict(self) -> dict[str, Any]:
         o = self.offerta
+        gas = getattr(self, "_gas", False)
         return {
             "nome": o.nome,
             "venditore": o.venditore,
             "codice_offerta": o.codice,
-            "tipo": "variabile (PUN + spread)" if o.variabile else "prezzo fisso",
+            "tipo": f"variabile ({'PSV' if gas else 'PUN'} + spread)" if o.variabile else "prezzo fisso",
             "costo_annuo": round(self.totale, 2),
             "quota_fissa_anno": round(self.quota_fissa, 2),
             "costo_energia_anno": round(self.energia, 2),
-            "prezzo_medio_kwh": round(self.prezzo_medio, 4),
+            ("prezzo_medio_smc" if gas else "prezzo_medio_kwh"): round(self.prezzo_medio, 4),
             "sconti_applicati": round(self.sconti, 2),
             "sconti_non_applicati": self.sconti_esclusi,
             "una_tantum": round(self.una_tantum, 2),
@@ -409,7 +430,9 @@ def stima(o: Offerta, p: Profilo) -> Stima | None:
     """Spesa annua per le sole voci che cambiano tra venditori (oneri, rete e imposte sono uguali per tutti)."""
     consumo = p.totale
     fissa = energia = una_tantum = 0.0
-    approssimata = o.fasce in (FASCE_BIORARIA, FASCE_PERSONALIZZATE)
+    approssimata = not p.gas and o.fasce in (FASCE_BIORARIA, FASCE_PERSONALIZZATE)
+    u_energia = UNITA_EURO_SMC if p.gas else UNITA_EURO_KWH
+    massimo = MAX_EURO_SMC if p.gas else MAX_EURO_KWH
     for c in o.componenti:
         for i in c.intervalli:
             if i.unita == UNITA_EURO_ANNO:
@@ -418,17 +441,23 @@ def stima(o: Offerta, p: Profilo) -> Stima | None:
                 fissa += i.prezzo * p.potenza_kw
             elif i.unita == UNITA_EURO_UNA_TANTUM:
                 una_tantum += i.prezzo
-        if any(i.unita == UNITA_EURO_KWH for i in c.intervalli):
-            for banda in FASCE:
-                prezzo = _prezzo_fascia(c.intervalli, o.fasce, banda, consumo)
+        if any(i.unita == u_energia for i in c.intervalli):
+            for banda in p.bande:
+                prezzo = _prezzo_fascia(c.intervalli, o.fasce, banda, consumo, p.gas)
                 if prezzo is None:
                     return None  # struttura non interpretabile: meglio escludere che sbagliare
-                if any(i.prezzo > MAX_EURO_KWH for i in c.intervalli if i.unita == UNITA_EURO_KWH):
+                if any(i.prezzo > MAX_EURO_KWH for i in c.intervalli if i.unita == u_energia):
+                    if p.gas and prezzo > massimo:
+                        return None
                     approssimata = True
                 energia += prezzo * p.kwh[banda]
-    energia += o.dispacciamento_kwh * consumo
+    if not p.gas:
+        energia += o.dispacciamento_kwh * consumo
     if o.variabile:
-        energia += sum(p.pun[b] * o.coefficiente * p.kwh[b] for b in FASCE)
+        if p.gas:
+            energia += p.psv * o.coefficiente * consumo
+        else:
+            energia += sum(p.pun[b] * o.coefficiente * p.kwh[b] for b in FASCE)
     if energia <= 0:
         return None  # offerta senza prezzo dell'energia utilizzabile
 
@@ -447,8 +476,10 @@ def stima(o: Offerta, p: Profilo) -> Stima | None:
             sconti += s.prezzo
         elif s.unita == UNITA_EURO_ANNO:
             sconti += s.prezzo * quota
-        elif s.unita == UNITA_EURO_KWH:
+        elif s.unita == UNITA_EURO_KWH and not p.gas:
             sconti += _kwh_price(s.prezzo) * kwh_fascia.get(s.fascia or "", consumo) * quota
+        elif s.unita == UNITA_EURO_SMC and p.gas:
+            sconti += s.prezzo * consumo * quota
         elif s.unita == UNITA_PERCENTUALE and 0 < s.prezzo < 100:
             sconti += energia * s.prezzo / 100 * quota
         else:
@@ -459,6 +490,7 @@ def stima(o: Offerta, p: Profilo) -> Stima | None:
     totale = fissa + energia + una_tantum - sconti
     st = Stima(o, totale, fissa, energia, una_tantum, sconti, esclusi, approssimata)
     st._kwh = dict(p.kwh)  # type: ignore[attr-defined]
+    st._gas = p.gas  # type: ignore[attr-defined]
     return st
 
 
